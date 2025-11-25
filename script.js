@@ -607,11 +607,78 @@ const tabButtons = document.querySelectorAll('.tab-btn');
 // Current filter
 let currentFilter = 'all';
 
+// Audio Context for sound effects
+let audioContext;
+let sounds = {
+    click: null,
+    addToCart: null,
+    checkout: null,
+    delete: null
+};
+
+// Initialize audio
+function initAudio() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        createSounds();
+    } catch (e) {
+        console.log('Web Audio API not supported');
+    }
+}
+
+// Create synthesized sounds
+function createSounds() {
+    // Click sound - short beep
+    sounds.click = () => playTone(800, 0.05, 'sine', 0.1);
+
+    // Add to cart - ascending notes
+    sounds.addToCart = () => {
+        playTone(440, 0.1, 'sine', 0.15);
+        setTimeout(() => playTone(554, 0.1, 'sine', 0.15), 50);
+        setTimeout(() => playTone(659, 0.15, 'sine', 0.2), 100);
+    };
+
+    // Checkout - success melody
+    sounds.checkout = () => {
+        playTone(523, 0.15, 'sine', 0.2);
+        setTimeout(() => playTone(659, 0.15, 'sine', 0.2), 150);
+        setTimeout(() => playTone(784, 0.3, 'sine', 0.25), 300);
+    };
+
+    // Delete - descending tone
+    sounds.delete = () => {
+        playTone(400, 0.1, 'sine', 0.15);
+        setTimeout(() => playTone(300, 0.15, 'sine', 0.15), 100);
+    };
+}
+
+// Play a tone
+function playTone(frequency, duration, type = 'sine', volume = 0.3) {
+    if (!audioContext) return;
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+
+    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration);
+}
+
 // Initialize
 function init() {
+    initAudio();
     loadOrderHistory();
     renderRecipes(recipes);
     setupEventListeners();
+    addRippleEffect();
 }
 
 // Render recipe cards
@@ -646,7 +713,7 @@ function createRecipeCard(recipe) {
                     <span>¥${recipe.price}</span>
                 </div>
             </div>
-            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${recipe.id})">
+            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${recipe.id}, event)">
                 加入菜单 +
             </button>
         </div>
@@ -691,7 +758,7 @@ function showRecipeDetail(recipe) {
 
         <div class="modal-footer">
             <div class="price-tag">¥${recipe.price}</div>
-            <button class="modal-add-btn" onclick="addToCart(${recipe.id}); closeModal()">加入菜单</button>
+            <button class="modal-add-btn" onclick="addToCart(${recipe.id}, event); closeModal()">加入菜单</button>
         </div>
     `;
 
@@ -766,7 +833,7 @@ function setupEventListeners() {
 }
 
 // Cart Functions
-function addToCart(recipeId) {
+function addToCart(recipeId, event) {
     const recipe = recipes.find(r => r.id === recipeId);
     const existingItem = cart.find(item => item.id === recipeId);
 
@@ -779,11 +846,20 @@ function addToCart(recipeId) {
         });
     }
 
+    // Play sound
+    if (sounds.addToCart) sounds.addToCart();
+
     updateCartUI();
     showToast(`已将 ${recipe.title} 加入菜单`);
+
+    // Flying to cart animation
+    if (event && event.target) {
+        flyToCart(event.target);
+    }
 }
 
 function removeFromCart(recipeId) {
+    if (sounds.delete) sounds.delete();
     cart = cart.filter(item => item.id !== recipeId);
     updateCartUI();
 }
@@ -864,6 +940,10 @@ function checkout() {
     saveOrderHistory();
     renderOrderHistory();
 
+    // Play success sound and show effects
+    if (sounds.checkout) sounds.checkout();
+    createParticleExplosion();
+
     alert(`下单成功！\n共 ${totalQuantity} 道菜\n总计：¥${total}\n\n美味马上就来！`);
     cart = [];
     updateCartUI();
@@ -930,6 +1010,7 @@ function toggleOrderDetails(orderId) {
 
 function deleteOrder(orderId) {
     if (confirm('确定要删除这个订单吗？')) {
+        if (sounds.delete) sounds.delete();
         orderHistory = orderHistory.filter(order => order.id !== orderId);
         saveOrderHistory();
         renderOrderHistory();
@@ -980,6 +1061,103 @@ function showToast(message) {
             document.body.removeChild(toast);
         }, 300);
     }, 2000);
+}
+
+// Ripple Effect
+function addRippleEffect() {
+    document.addEventListener('click', function (e) {
+        const target = e.target;
+        if (target.tagName === 'BUTTON' || target.classList.contains('recipe-card')) {
+            if (sounds.click) sounds.click();
+            createRipple(e, target);
+        }
+    });
+}
+
+function createRipple(event, element) {
+    const ripple = document.createElement('span');
+    ripple.classList.add('ripple');
+
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+
+    element.style.position = 'relative';
+    element.style.overflow = 'hidden';
+    element.appendChild(ripple);
+
+    setTimeout(() => {
+        ripple.remove();
+    }, 600);
+}
+
+// Flying to Cart Animation
+function flyToCart(element) {
+    const rect = element.getBoundingClientRect();
+    const cartBtn = document.getElementById('cartBtn');
+    const cartRect = cartBtn.getBoundingClientRect();
+
+    const flyingElement = document.createElement('div');
+    flyingElement.className = 'flying-item';
+    flyingElement.textContent = '🍽️';
+    flyingElement.style.left = rect.left + rect.width / 2 + 'px';
+    flyingElement.style.top = rect.top + rect.height / 2 + 'px';
+
+    document.body.appendChild(flyingElement);
+
+    setTimeout(() => {
+        flyingElement.style.left = cartRect.left + cartRect.width / 2 + 'px';
+        flyingElement.style.top = cartRect.top + cartRect.height / 2 + 'px';
+        flyingElement.style.opacity = '0';
+        flyingElement.style.transform = 'scale(0.3)';
+    }, 10);
+
+    setTimeout(() => {
+        flyingElement.remove();
+        // Shake cart button
+        cartBtn.classList.add('shake');
+
+        // Remove shake class after animation completes
+        const handleAnimationEnd = () => {
+            cartBtn.classList.remove('shake');
+            cartBtn.removeEventListener('animationend', handleAnimationEnd);
+        };
+        cartBtn.addEventListener('animationend', handleAnimationEnd);
+
+        // Fallback timeout in case event doesn't fire
+        setTimeout(() => {
+            cartBtn.classList.remove('shake');
+        }, 600);
+    }, 800);
+}
+
+// Particle Explosion Effect
+function createParticleExplosion() {
+    const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
+    const particleCount = 30;
+
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+        const angle = (Math.PI * 2 * i) / particleCount;
+        const velocity = 150 + Math.random() * 100;
+        const x = Math.cos(angle) * velocity;
+        const y = Math.sin(angle) * velocity;
+
+        particle.style.setProperty('--x', x + 'px');
+        particle.style.setProperty('--y', y + 'px');
+
+        document.body.appendChild(particle);
+
+        setTimeout(() => particle.remove(), 1000);
+    }
 }
 
 // Start the app
