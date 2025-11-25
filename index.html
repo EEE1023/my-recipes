@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像高手一样做饭 - 美食食谱分享</title>
+    <meta name="description" content="分享各种美食食谱，让你轻松做出美味佳肴">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">🍳 像高手一样做饭</h1>
+            <p class="tagline">美食的秘密，就在这里</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <button class="nav-btn active" data-category="all">全部</button>
+            <button class="nav-btn" data-category="早餐">早餐</button>
+            <button class="nav-btn" data-category="主食">主食</button>
+            <button class="nav-btn" data-category="凉拌">凉拌</button>
+            <button class="nav-btn" data-category="汤品">汤品</button>
+            <button class="nav-btn" data-category="卤菜">卤菜</button>
+            <button class="nav-btn" data-category="炒菜">炒菜</button>
+            <button class="nav-btn" data-category="炖菜">炖菜</button>
+            <button class="nav-btn" data-category="蒸菜">蒸菜</button>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <div class="recipes-grid" id="recipesGrid">
+                <!-- Recipe cards will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for recipe details -->
+    <div class="modal" id="recipeModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-body" id="modalBody">
+                <!-- Recipe details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 美食食谱分享 - 让烹饪变得简单有趣</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
