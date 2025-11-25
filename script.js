@@ -8,6 +8,7 @@ const recipes = [
         description: '酸爽开胃的柠檬凤爪，夏日必备美食，清新解腻',
         cookTime: '60分钟',
         difficulty: '中等',
+        price: 38,
         ingredients: [
             '鸡爪 500克',
             '柠檬 2个',
@@ -42,6 +43,7 @@ const recipes = [
         description: '暖胃养生的小米南瓜粥，香甜绵软，营养丰富',
         cookTime: '40分钟',
         difficulty: '简单',
+        price: 12,
         ingredients: [
             '小米 100克',
             '南瓜 300克',
@@ -72,6 +74,7 @@ const recipes = [
         description: '皮薄馅大的手工烧麦，鲜香多汁，早餐佳品',
         cookTime: '90分钟',
         difficulty: '困难',
+        price: 18,
         ingredients: [
             '中筋面粉 300克',
             '开水 180克',
@@ -109,6 +112,7 @@ const recipes = [
         description: '经典上海大排面，酥脆大排配上劲道面条，汤鲜味美',
         cookTime: '50分钟',
         difficulty: '中等',
+        price: 28,
         ingredients: [
             '猪大排 2块',
             '碱水面 200克',
@@ -147,6 +151,7 @@ const recipes = [
         description: '营养均衡的杂粮饭，粗细搭配，健康美味',
         cookTime: '60分钟',
         difficulty: '简单',
+        price: 5,
         ingredients: [
             '大米 100克',
             '糙米 50克',
@@ -177,6 +182,7 @@ const recipes = [
         description: '麻辣鲜香的口水鸡，肉质鲜嫩，辣而不燥',
         cookTime: '45分钟',
         difficulty: '中等',
+        price: 45,
         ingredients: [
             '鸡腿 2个',
             '花生米 适量',
@@ -214,6 +220,7 @@ const recipes = [
         description: '清香浓郁的鸡汤，滋补养生，鲜美可口',
         cookTime: '90分钟',
         difficulty: '简单',
+        price: 68,
         ingredients: [
             '鸡肉 1只（约1.5kg）',
             '生姜 5片',
@@ -245,6 +252,7 @@ const recipes = [
         description: '营养滋补的老母鸡汤，汤浓味醇，适合产后及体弱者',
         cookTime: '150分钟',
         difficulty: '简单',
+        price: 128,
         ingredients: [
             '老母鸡 1只（约2kg）',
             '生姜 8片',
@@ -280,6 +288,7 @@ const recipes = [
         description: '色泽红亮的卤大排，香而不腻，酥软入味',
         cookTime: '120分钟',
         difficulty: '中等',
+        price: 42,
         ingredients: [
             '猪大排 500克',
             '生抽 4勺',
@@ -318,6 +327,7 @@ const recipes = [
         description: '软糯入味的卤鸡爪，香辣可口，下酒好菜',
         cookTime: '90分钟',
         difficulty: '中等',
+        price: 35,
         ingredients: [
             '鸡爪 500克',
             '生抽 4勺',
@@ -356,6 +366,7 @@ const recipes = [
         description: '色彩缤纷的什锦蛋炒饭，粒粒分明，营养丰富',
         cookTime: '20分钟',
         difficulty: '简单',
+        price: 22,
         ingredients: [
             '米饭 300克',
             '鸡蛋 2个',
@@ -391,6 +402,7 @@ const recipes = [
         description: '经典湘菜农家小炒肉，香辣下饭，肉嫩味美',
         cookTime: '25分钟',
         difficulty: '中等',
+        price: 32,
         ingredients: [
             '五花肉 300克',
             '青椒 3个',
@@ -426,6 +438,7 @@ const recipes = [
         description: '软烂入味的土豆牛腩，汤汁浓郁，营养丰富',
         cookTime: '120分钟',
         difficulty: '中等',
+        price: 58,
         ingredients: [
             '牛腩 500克',
             '土豆 2个',
@@ -469,6 +482,7 @@ const recipes = [
         description: '清淡营养的白菜炖豆腐，汤鲜菜嫩，家常美味',
         cookTime: '30分钟',
         difficulty: '简单',
+        price: 18,
         ingredients: [
             '大白菜 半颗',
             '豆腐 1块',
@@ -504,6 +518,7 @@ const recipes = [
         description: '嫩滑如豆腐的蒸蛋，口感细腻，老少皆宜',
         cookTime: '15分钟',
         difficulty: '简单',
+        price: 15,
         ingredients: [
             '鸡蛋 3个',
             '温水 适量',
@@ -534,6 +549,7 @@ const recipes = [
         description: '湘菜经典剁椒鱼头，鲜辣可口，色泽红亮',
         cookTime: '30分钟',
         difficulty: '中等',
+        price: 68,
         ingredients: [
             '鱼头 1个（约800克）',
             '剁椒 4勺',
@@ -574,11 +590,26 @@ const modal = document.getElementById('recipeModal');
 const modalClose = document.getElementById('modalClose');
 const modalBody = document.getElementById('modalBody');
 
+// Cart state
+let cart = [];
+let orderHistory = [];
+const cartModal = document.getElementById('cartModal');
+const cartItems = document.getElementById('cartItems');
+const cartTotal = document.getElementById('cartTotal');
+const cartCount = document.getElementById('cartCount');
+const cartBtn = document.getElementById('cartBtn');
+const closeCartBtn = document.getElementById('closeCartBtn');
+const checkoutBtn = document.getElementById('checkoutBtn');
+const historyItems = document.getElementById('historyItems');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const tabButtons = document.querySelectorAll('.tab-btn');
+
 // Current filter
 let currentFilter = 'all';
 
 // Initialize
 function init() {
+    loadOrderHistory();
     renderRecipes(recipes);
     setupEventListeners();
 }
@@ -611,10 +642,13 @@ function createRecipeCard(recipe) {
                     <span>${recipe.cookTime}</span>
                 </div>
                 <div class="meta-item">
-                    <span class="meta-icon">📊</span>
-                    <span>${recipe.difficulty}</span>
+                    <span class="meta-icon">💰</span>
+                    <span>¥${recipe.price}</span>
                 </div>
             </div>
+            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${recipe.id})">
+                加入菜单 +
+            </button>
         </div>
     `;
 
@@ -653,6 +687,11 @@ function showRecipeDetail(recipe) {
             <div class="tips-box">
                 <p>${recipe.tips}</p>
             </div>
+        </div>
+
+        <div class="modal-footer">
+            <div class="price-tag">¥${recipe.price}</div>
+            <button class="modal-add-btn" onclick="addToCart(${recipe.id}); closeModal()">加入菜单</button>
         </div>
     `;
 
@@ -708,10 +747,239 @@ function setupEventListeners() {
 
     // ESC key to close modal
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-            closeModal();
+        if (e.key === 'Escape') {
+            if (modal.classList.contains('active')) closeModal();
+            if (cartModal.classList.contains('active')) toggleCart();
         }
     });
+
+    // Cart event listeners
+    cartBtn.addEventListener('click', toggleCart);
+    closeCartBtn.addEventListener('click', toggleCart);
+    checkoutBtn.addEventListener('click', checkout);
+    clearHistoryBtn.addEventListener('click', clearHistory);
+
+    // Tab switching
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+}
+
+// Cart Functions
+function addToCart(recipeId) {
+    const recipe = recipes.find(r => r.id === recipeId);
+    const existingItem = cart.find(item => item.id === recipeId);
+
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            ...recipe,
+            quantity: 1
+        });
+    }
+
+    updateCartUI();
+    showToast(`已将 ${recipe.title} 加入菜单`);
+}
+
+function removeFromCart(recipeId) {
+    cart = cart.filter(item => item.id !== recipeId);
+    updateCartUI();
+}
+
+function updateQuantity(recipeId, change) {
+    const item = cart.find(item => item.id === recipeId);
+    if (item) {
+        item.quantity += change;
+        if (item.quantity <= 0) {
+            removeFromCart(recipeId);
+        } else {
+            updateCartUI();
+        }
+    }
+}
+
+function toggleCart() {
+    cartModal.classList.toggle('active');
+    document.body.style.overflow = cartModal.classList.contains('active') ? 'hidden' : 'auto';
+}
+
+function updateCartUI() {
+    // Update count badge
+    const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.textContent = totalCount;
+    cartCount.style.display = totalCount > 0 ? 'flex' : 'none';
+
+    // Update cart items list
+    cartItems.innerHTML = cart.map(item => `
+        <div class="cart-item">
+            <div class="cart-item-info">
+                <div class="cart-item-title">${item.emoji} ${item.title}</div>
+                <div class="cart-item-price">¥${item.price}</div>
+            </div>
+            <div class="cart-item-controls">
+                <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                <span class="qty-num">${item.quantity}</span>
+                <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+            </div>
+        </div>
+    `).join('');
+
+    // Update total price
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    cartTotal.textContent = `¥${total}`;
+
+    // Show empty state if needed
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-cart">菜单还是空的，快去点菜吧！</div>';
+    }
+}
+
+function checkout() {
+    if (cart.length === 0) {
+        showToast('请先选择菜品');
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalQuantity = cart.reduce((s, i) => s + i.quantity, 0);
+
+    // Save order to history
+    const order = {
+        id: Date.now(),
+        date: new Date().toLocaleString('zh-CN'),
+        items: cart.map(item => ({
+            id: item.id,
+            title: item.title,
+            emoji: item.emoji,
+            price: item.price,
+            quantity: item.quantity
+        })),
+        total: total,
+        totalQuantity: totalQuantity
+    };
+
+    orderHistory.unshift(order); // Add to beginning of array
+    saveOrderHistory();
+    renderOrderHistory();
+
+    alert(`下单成功！\n共 ${totalQuantity} 道菜\n总计：¥${total}\n\n美味马上就来！`);
+    cart = [];
+    updateCartUI();
+
+    // Switch to history tab to show the new order
+    setTimeout(() => {
+        switchTab('history');
+    }, 300);
+}
+
+// Order History Functions
+function saveOrderHistory() {
+    localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
+}
+
+function loadOrderHistory() {
+    const saved = localStorage.getItem('orderHistory');
+    if (saved) {
+        orderHistory = JSON.parse(saved);
+        renderOrderHistory();
+    }
+}
+
+function renderOrderHistory() {
+    if (orderHistory.length === 0) {
+        historyItems.innerHTML = '<div class="empty-history">暂无历史订单</div>';
+        return;
+    }
+
+    historyItems.innerHTML = orderHistory.map(order => `
+        <div class="history-order">
+            <div class="order-header" onclick="toggleOrderDetails(${order.id})">
+                <div class="order-info">
+                    <div class="order-date">📅 ${order.date}</div>
+                    <div class="order-summary">${order.totalQuantity} 道菜 · ¥${order.total}</div>
+                </div>
+                <button class="expand-btn" id="expand-${order.id}">▼</button>
+            </div>
+            <div class="order-details" id="details-${order.id}">
+                ${order.items.map(item => `
+                    <div class="history-item">
+                        <span>${item.emoji} ${item.title}</span>
+                        <span>x${item.quantity}</span>
+                        <span class="item-price">¥${item.price * item.quantity}</span>
+                    </div>
+                `).join('')}
+                <div class="order-actions">
+                    <button class="delete-order-btn" onclick="deleteOrder(${order.id})">
+                        🗑️ 删除此订单
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleOrderDetails(orderId) {
+    const details = document.getElementById(`details-${orderId}`);
+    const expandBtn = document.getElementById(`expand-${orderId}`);
+
+    details.classList.toggle('active');
+    expandBtn.textContent = details.classList.contains('active') ? '▲' : '▼';
+}
+
+function deleteOrder(orderId) {
+    if (confirm('确定要删除这个订单吗？')) {
+        orderHistory = orderHistory.filter(order => order.id !== orderId);
+        saveOrderHistory();
+        renderOrderHistory();
+        showToast('订单已删除');
+    }
+}
+
+function clearHistory() {
+    if (orderHistory.length === 0) {
+        showToast('暂无历史订单');
+        return;
+    }
+
+    if (confirm('确定要清空所有历史订单吗？此操作不可恢复！')) {
+        orderHistory = [];
+        saveOrderHistory();
+        renderOrderHistory();
+        showToast('历史订单已清空');
+    }
+}
+
+// Tab switching
+function switchTab(tabName) {
+    // Update tab buttons
+    tabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+
+    // Update tab content
+    document.getElementById('currentTab').classList.toggle('active', tabName === 'current');
+    document.getElementById('historyTab').classList.toggle('active', tabName === 'history');
+}
+
+// Toast notification
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 2000);
 }
 
 // Start the app
