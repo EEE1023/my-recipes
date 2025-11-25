@@ -826,6 +826,13 @@ function setupEventListeners() {
     checkoutBtn.addEventListener('click', checkout);
     clearHistoryBtn.addEventListener('click', clearHistory);
 
+    // Click outside cart to close (click on the overlay background)
+    cartModal.addEventListener('click', (e) => {
+        if (e.target === cartModal) {
+            toggleCart();
+        }
+    });
+
     // Tab switching
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -838,6 +845,10 @@ function addToCart(recipeId, event) {
     const existingItem = cart.find(item => item.id === recipeId);
 
     if (existingItem) {
+        if (existingItem.quantity >= 99) {
+            showToast('⚠️ 单个菜品最多99份');
+            return;
+        }
         existingItem.quantity += 1;
     } else {
         cart.push({
@@ -867,10 +878,16 @@ function removeFromCart(recipeId) {
 function updateQuantity(recipeId, change) {
     const item = cart.find(item => item.id === recipeId);
     if (item) {
-        item.quantity += change;
-        if (item.quantity <= 0) {
+        const newQuantity = item.quantity + change;
+
+        // Enforce quantity limits
+        if (newQuantity <= 0) {
             removeFromCart(recipeId);
+        } else if (newQuantity > 99) {
+            showToast('单个菜品最多99份哦！');
         } else {
+            item.quantity = newQuantity;
+            if (sounds.click) sounds.click();
             updateCartUI();
         }
     }
@@ -887,29 +904,50 @@ function updateCartUI() {
     cartCount.textContent = totalCount;
     cartCount.style.display = totalCount > 0 ? 'flex' : 'none';
 
-    // Update cart items list
+    // Update cart items list with improved controls
     cartItems.innerHTML = cart.map(item => `
         <div class="cart-item">
             <div class="cart-item-info">
                 <div class="cart-item-title">${item.emoji} ${item.title}</div>
-                <div class="cart-item-price">¥${item.price}</div>
+                <div class="cart-item-price">¥${formatPrice(item.price)}</div>
             </div>
             <div class="cart-item-controls">
-                <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
                 <span class="qty-num">${item.quantity}</span>
-                <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)" ${item.quantity >= 99 ? 'disabled' : ''}>+</button>
             </div>
         </div>
     `).join('');
 
-    // Update total price
+    // Update total price with animation
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    cartTotal.textContent = `¥${total}`;
+    const newTotal = `¥${formatPrice(total)}`;
+
+    if (cartTotal.textContent !== newTotal) {
+        cartTotal.classList.add('price-update');
+        setTimeout(() => cartTotal.classList.remove('price-update'), 300);
+    }
+    cartTotal.textContent = newTotal;
+
+    // Enable/disable checkout button
+    checkoutBtn.disabled = cart.length === 0;
+    checkoutBtn.classList.toggle('disabled', cart.length === 0);
 
     // Show empty state if needed
     if (cart.length === 0) {
-        cartItems.innerHTML = '<div class="empty-cart">菜单还是空的，快去点菜吧！</div>';
+        cartItems.innerHTML = `
+            <div class="empty-cart">
+                <div class="empty-icon">🍽️</div>
+                <div class="empty-text">菜单还是空的</div>
+                <div class="empty-subtext">快去挑选美味佳肴吧！</div>
+            </div>
+        `;
     }
+}
+
+// Format price with thousand separator
+function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function checkout() {
@@ -969,7 +1007,13 @@ function loadOrderHistory() {
 
 function renderOrderHistory() {
     if (orderHistory.length === 0) {
-        historyItems.innerHTML = '<div class="empty-history">暂无历史订单</div>';
+        historyItems.innerHTML = `
+            <div class="empty-history">
+                <div class="empty-icon">📋</div>
+                <div class="empty-text">暂无历史订单</div>
+                <div class="empty-subtext">下单后可以在这里查看订单记录</div>
+            </div>
+        `;
         return;
     }
 
@@ -1009,26 +1053,29 @@ function toggleOrderDetails(orderId) {
 }
 
 function deleteOrder(orderId) {
-    if (confirm('确定要删除这个订单吗？')) {
+    event.stopPropagation(); // Prevent triggering expand/collapse
+
+    if (confirm('🗑️ 确定要删除这个订单吗？\n\n订单删除后无法恢复')) {
         if (sounds.delete) sounds.delete();
         orderHistory = orderHistory.filter(order => order.id !== orderId);
         saveOrderHistory();
         renderOrderHistory();
-        showToast('订单已删除');
+        showToast('✓ 订单已删除');
     }
 }
 
 function clearHistory() {
     if (orderHistory.length === 0) {
-        showToast('暂无历史订单');
+        showToast('📋 暂无历史订单');
         return;
     }
 
-    if (confirm('确定要清空所有历史订单吗？此操作不可恢复！')) {
+    if (confirm(`🗑️ 确定要清空所有历史订单吗？\n\n共 ${orderHistory.length} 个订单将被永久删除！`)) {
+        if (sounds.delete) sounds.delete();
         orderHistory = [];
         saveOrderHistory();
         renderOrderHistory();
-        showToast('历史订单已清空');
+        showToast('✓ 历史订单已清空');
     }
 }
 

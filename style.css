@@ -671,6 +671,18 @@ body {
     color: var(--primary-color);
 }
 
+.qty-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: #E9ECEF;
+    color: var(--text-light);
+}
+
+.qty-btn:disabled:hover {
+    border-color: #E9ECEF;
+    color: var(--text-light);
+}
+
 .qty-num {
     font-weight: 600;
     min-width: 20px;
@@ -679,9 +691,26 @@ body {
 
 .empty-cart {
     text-align: center;
+    padding: 60px 24px;
     color: var(--text-light);
-    margin-top: 48px;
-    font-size: 1.1rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.empty-subtext {
+    font-size: 0.95rem;
+    color: var(--text-light);
 }
 
 /* History Tab */
@@ -856,6 +885,23 @@ body {
     font-size: 1.5rem;
 }
 
+.price-update {
+    animation: priceChange 0.3s ease-out;
+}
+
+@keyframes priceChange {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+        color: #FFE66D;
+    }
+}
+
 .checkout-btn {
     width: 100%;
     padding: 16px;
@@ -870,10 +916,23 @@ body {
     box-shadow: var(--shadow-md);
 }
 
-.checkout-btn:hover {
+.checkout-btn:hover:not(:disabled) {
     background: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+}
+
+.checkout-btn:disabled,
+.checkout-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--text-light);
+}
+
+.checkout-btn:disabled:hover,
+.checkout-btn.disabled:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
 }
 
 /* Toast Notification */
@@ -1077,5 +1136,33 @@ body {
 
     .cart-content {
         max-width: 100%;
+    }
+
+    /* Larger touch targets for mobile */
+    .qty-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .cart-btn {
+        width: 56px;
+        height: 56px;
+        bottom: 24px;
+        right: 24px;
+    }
+
+    .cart-icon {
+        font-size: 1.6rem;
+    }
+
+    /* Better spacing on mobile */
+    .cart-item {
+        padding: 20px 16px;
+    }
+
+    .add-to-cart-btn {
+        padding: 14px;
+        font-size: 1rem;
     }
 }
